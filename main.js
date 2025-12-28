@@ -12,7 +12,13 @@ async function cargarLadder() {
     .order("elo", { ascending: false });
 
   if (error) {
-    app.innerHTML = "Error cargando ladder";
+    console.error(error);
+    app.textContent = "Error cargando ladder";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    app.textContent = "No hay jugadores en la ladder";
     return;
   }
 app.innerHTML = `
