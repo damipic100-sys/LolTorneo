@@ -1,72 +1,156 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ladder Tournament LoL</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #1e1e2f; color: #fff; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border-bottom: 1px solid #444; }
-    th { background: #2e2e4f; }
-    a { color: #61dafb; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Jugadores - Torneo LoL</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #12122b;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #2a2a50;
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  main {
+    max-width: 800px;
+    margin: auto;
+    padding: 1rem;
+  }
+  .add-player {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+  .add-player input, .add-player select {
+    padding: 0.5rem;
+    border: none;
+    outline: none;
+  }
+  .add-player input {
+    flex: 2;
+    border-radius: 5px 0 0 5px;
+  }
+  .add-player select {
+    flex: 1;
+  }
+  .add-player button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    background: #ff9500;
+    color: #fff;
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+  }
+  th {
+    background: #1f1f40;
+  }
+  tr:nth-child(even) {
+    background: #1b1b35;
+  }
+  tr:hover {
+    background: #2a2a50;
+  }
+  .role-top { color: #4caf50; }
+  .role-jungle { color: #ff5722; }
+  .role-mid { color: #03a9f4; }
+  .role-adc { color: #ffc107; }
+  .role-support { color: #e91e63; }
+  .btn-remove {
+    background: #ff3b3b;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-<h1>Ladder Torneo LoL</h1>
+<header>Tablero de Jugadores - Torneo LoL</header>
 
-<table id="ladderTable">
-  <thead>
-    <tr>
-      <th>Posición</th>
-      <th>Jugador</th>
-      <th>LP</th>
-      <th>Rango</th>
-      <th>Enlaces</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<main>
+  <div class="add-player">
+    <input type="text" id="playerName" placeholder="Nombre del jugador">
+    <select id="playerRole">
+      <option value="top">Top</option>
+      <option value="jungle">Jungle</option>
+      <option value="mid">Mid</option>
+      <option value="adc">ADC</option>
+      <option value="support">Support</option>
+    </select>
+    <button onclick="addPlayer()">Agregar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Jugador</th>
+        <th>Rol</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody id="playerList"></tbody>
+  </table>
+</main>
 
 <script>
-const players = [
-  { summonerName: "Dami#ARG", region: "la2" },
-  { summonerName: "RaviolesConCrema#Queso", region: "la2" },
-  { summonerName: "N1GhtM4#666", region: "la2" }
+let players = [
+  {name: "Jugador1", role: "top"},
+  {name: "Jugador2", role: "mid"},
+  {name: "Jugador3", role: "adc"},
 ];
 
-const tableBody = document.querySelector("#ladderTable tbody");
+const playerList = document.getElementById('playerList');
 
-async function fetchPlayer(player) {
-  try {
-    const res = await fetch(`http://localhost:3000/api/summoner/${player.region}/${player.summonerName}`);
-    return await res.json();
-  } catch (err) {
-    console.error("Error frontend:", err);
-    return { summonerName: player.summonerName, lp: 0, rank: "Error" };
-  }
-}
-
-async function populateTable() {
-  for (let i = 0; i < players.length; i++) {
-    const data = await fetchPlayer(players[i]);
-    const row = document.createElement("tr");
-    row.innerHTML = `
+function renderPlayers() {
+  playerList.innerHTML = '';
+  players.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
       <td>${i + 1}</td>
-      <td>${data.summonerName}</td>
-      <td>${data.lp}</td>
-      <td>${data.rank}</td>
-      <td>
-        <a href="https://${players[i].region}.op.gg/summoner/userName=${data.summonerName}" target="_blank">OP.GG</a>
-      </td>
+      <td>${p.name}</td>
+      <td class="role-${p.role}">${p.role.charAt(0).toUpperCase() + p.role.slice(1)}</td>
+      <td><button class="btn-remove" onclick="removePlayer(${i})">Eliminar</button></td>
     `;
-    tableBody.appendChild(row);
+    playerList.appendChild(tr);
+  });
+}
+
+function addPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  const role = document.getElementById('playerRole').value;
+  if(name) {
+    players.push({name, role});
+    document.getElementById('playerName').value = '';
+    renderPlayers();
   }
 }
 
-populateTable();
+function removePlayer(index) {
+  players.splice(index, 1);
+  renderPlayers();
+}
+
+renderPlayers();
 </script>
 
 </body>
