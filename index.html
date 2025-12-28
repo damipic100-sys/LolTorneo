@@ -5,20 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ladder Tournament LoL</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #1e1e2f; color: #fff; }
+    body { font-family: Arial; padding: 20px; background: #1e1e2f; color: #fff; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border-bottom: 1px solid #444; text-align: left; }
+    th, td { padding: 10px; border-bottom: 1px solid #444; }
     th { background: #2e2e4f; }
     a { color: #61dafb; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    button { padding: 5px 10px; margin-left: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
 
 <h1>Ladder Torneo LoL</h1>
 
-<!-- Tabla donde se mostrarán los jugadores -->
 <table id="ladderTable">
   <thead>
     <tr>
@@ -29,69 +27,46 @@
       <th>Enlaces</th>
     </tr>
   </thead>
-  <tbody>
-    <!-- Las filas se llenarán dinámicamente -->
-  </tbody>
+  <tbody></tbody>
 </table>
 
 <script>
-  // Lista de jugadores de ejemplo
-  const players = [
-    { summonerName: "Jugador1", region: "na1" },
-    { summonerName: "Jugador2", region: "euw1" },
-    { summonerName: "Jugador3", region: "kr" }
-  ];
+const players = [
+  { summonerName: "Jugador1", region: "na1" },
+  { summonerName: "Jugador2", region: "euw1" },
+  { summonerName: "Jugador3", region: "kr" }
+];
 
-  const ladderTableBody = document.querySelector("#ladderTable tbody");
+const tableBody = document.querySelector("#ladderTable tbody");
 
-  // Función para obtener datos de Riot API
-  async function getRiotData(player) {
-    const API_KEY = "TU_API_KEY_DE_RIOT"; // Cambia por tu API key
-    try {
-      // Buscar información de summoner
-      const res = await fetch(`https://${player.region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${player.summonerName}?api_key=${API_KEY}`);
-      const data = await res.json();
-      
-      // Obtener liga/LP
-      const leagueRes = await fetch(`https://${player.region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${data.id}?api_key=${API_KEY}`);
-      const leagueData = await leagueRes.json();
-      if (leagueData.length > 0) {
-        const soloq = leagueData.find(l => l.queueType === "RANKED_SOLO_5x5");
-        return {
-          lp: soloq ? soloq.leaguePoints : 0,
-          rank: soloq ? `${soloq.tier} ${soloq.rank}` : "Unranked"
-        };
-      } else {
-        return { lp: 0, rank: "Unranked" };
-      }
-    } catch (err) {
-      console.error("Error al obtener datos de Riot API:", err);
-      return { lp: 0, rank: "Error" };
-    }
+async function fetchPlayer(player) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/summoner/${player.region}/${player.summonerName}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Error frontend:", err);
+    return { summonerName: player.summonerName, lp: 0, rank: "Error" };
   }
+}
 
-  // Función para llenar la tabla
-  async function populateTable() {
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
-      const riotData = await getRiotData(player);
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${player.summonerName}</td>
-        <td>${riotData.lp}</td>
-        <td>${riotData.rank}</td>
-        <td>
-          <a href="https://${player.region}.op.gg/summoner/userName=${player.summonerName}" target="_blank">OP.GG</a>
-          <button onclick="alert('Aquí podrías mostrar más stats usando Riot API')">Ver Stats</button>
-        </td>
-      `;
-      ladderTableBody.appendChild(row);
-    }
+async function populateTable() {
+  for (let i = 0; i < players.length; i++) {
+    const data = await fetchPlayer(players[i]);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${data.summonerName}</td>
+      <td>${data.lp}</td>
+      <td>${data.rank}</td>
+      <td>
+        <a href="https://${players[i].region}.op.gg/summoner/userName=${data.summonerName}" target="_blank">OP.GG</a>
+      </td>
+    `;
+    tableBody.appendChild(row);
   }
+}
 
-  populateTable();
+populateTable();
 </script>
 
 </body>
