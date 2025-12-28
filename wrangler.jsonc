@@ -1,0 +1,5 @@
+  {
+"name": "loltorneoworker",
+"compatibility_date": "2025-12-28",
+"main": "functions/player.js"
+}
