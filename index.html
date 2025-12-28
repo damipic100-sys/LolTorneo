@@ -3,154 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tablero de Jugadores - Torneo LoL</title>
+<title>Ladderboard LoL</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #12122b;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    background: #2a2a50;
-    padding: 1rem;
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-  }
-  main {
-    max-width: 800px;
-    margin: auto;
-    padding: 1rem;
-  }
-  .add-player {
-    display: flex;
-    margin-bottom: 1rem;
-  }
-  .add-player input, .add-player select {
-    padding: 0.5rem;
-    border: none;
-    outline: none;
-  }
-  .add-player input {
-    flex: 2;
-    border-radius: 5px 0 0 5px;
-  }
-  .add-player select {
-    flex: 1;
-  }
-  .add-player button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0 5px 5px 0;
-    background: #ff9500;
-    color: #fff;
-    cursor: pointer;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-  }
-  th, td {
-    padding: 0.75rem;
-    text-align: left;
-  }
-  th {
-    background: #1f1f40;
-  }
-  tr:nth-child(even) {
-    background: #1b1b35;
-  }
-  tr:hover {
-    background: #2a2a50;
-  }
-  .role-top { color: #4caf50; }
-  .role-jungle { color: #ff5722; }
-  .role-mid { color: #03a9f4; }
-  .role-adc { color: #ffc107; }
-  .role-support { color: #e91e63; }
-  .btn-remove {
-    background: #ff3b3b;
-    border: none;
-    padding: 0.25rem 0.5rem;
-    color: #fff;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+  body { font-family: Arial; background: #12122b; color: #fff; margin: 0; padding: 0; }
+  header { background: #2a2a50; padding: 1rem; text-align: center; font-size: 1.8rem; font-weight: bold; }
+  main { max-width: 900px; margin: auto; padding: 1rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th, td { padding: 0.75rem; text-align: left; }
+  th { background: #1f1f40; }
+  tr:nth-child(even) { background: #1b1b35; }
+  tr:hover { background: #2a2a50; }
 </style>
 </head>
 <body>
 
-<header>Tablero de Jugadores - Torneo LoL</header>
-
+<header>Ladderboard Torneo LoL</header>
 <main>
-  <div class="add-player">
-    <input type="text" id="playerName" placeholder="Nombre del jugador">
-    <select id="playerRole">
-      <option value="top">Top</option>
-      <option value="jungle">Jungle</option>
-      <option value="mid">Mid</option>
-      <option value="adc">ADC</option>
-      <option value="support">Support</option>
-    </select>
-    <button onclick="addPlayer()">Agregar</button>
-  </div>
-
   <table>
     <thead>
       <tr>
         <th>#</th>
         <th>Jugador</th>
-        <th>Rol</th>
-        <th>Acción</th>
+        <th>Elo</th>
+        <th>Wins</th>
+        <th>Losses</th>
       </tr>
     </thead>
-    <tbody id="playerList"></tbody>
+    <tbody id="ladder"></tbody>
   </table>
 </main>
 
 <script>
-let players = [
-  {name: "Jugador1", role: "top"},
-  {name: "Jugador2", role: "mid"},
-  {name: "Jugador3", role: "adc"},
+const players = [
+  {summonerName: "Jugador1", region: "na1"},
+  {summonerName: "Jugador2", region: "na1"},
+  {summonerName: "Jugador3", region: "na1"}
 ];
 
-const playerList = document.getElementById('playerList');
+// Simula fetch a tu backend que llama Riot API
+async function fetchPlayerData(summonerName, region) {
+  // Reemplazá con tu backend, por ejemplo:
+  // return fetch(`/api/riot/${region}/${summonerName}`).then(r => r.json());
 
-function renderPlayers() {
-  playerList.innerHTML = '';
-  players.forEach((p, i) => {
-    const tr = document.createElement('tr');
+  // Esto es un ejemplo simulado
+  return new Promise(res => setTimeout(() => {
+    const elos = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND"];
+    const tier = elos[Math.floor(Math.random() * elos.length)];
+    res({summonerName, tier, wins: Math.floor(Math.random()*100), losses: Math.floor(Math.random()*100)});
+  }, 500));
+}
+
+async function updateLadder() {
+  const ladder = document.getElementById("ladder");
+  ladder.innerHTML = "";
+
+  const results = await Promise.all(players.map(p => fetchPlayerData(p.summonerName, p.region)));
+
+  // Ordenar por tier (simplificado, solo por el índice de elos)
+  const tierOrder = ["IRON","BRONZE","SILVER","GOLD","PLATINUM","DIAMOND","MASTER","GRANDMASTER","CHALLENGER"];
+  results.sort((a,b) => tierOrder.indexOf(b.tier) - tierOrder.indexOf(a.tier));
+
+  results.forEach((p,i) => {
+    const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${p.name}</td>
-      <td class="role-${p.role}">${p.role.charAt(0).toUpperCase() + p.role.slice(1)}</td>
-      <td><button class="btn-remove" onclick="removePlayer(${i})">Eliminar</button></td>
+      <td>${i+1}</td>
+      <td>${p.summonerName}</td>
+      <td>${p.tier}</td>
+      <td>${p.wins}</td>
+      <td>${p.losses}</td>
     `;
-    playerList.appendChild(tr);
+    ladder.appendChild(tr);
   });
 }
 
-function addPlayer() {
-  const name = document.getElementById('playerName').value.trim();
-  const role = document.getElementById('playerRole').value;
-  if(name) {
-    players.push({name, role});
-    document.getElementById('playerName').value = '';
-    renderPlayers();
-  }
-}
-
-function removePlayer(index) {
-  players.splice(index, 1);
-  renderPlayers();
-}
-
-renderPlayers();
+// Actualiza cada 60s
+updateLadder();
+setInterval(updateLadder, 60000);
 </script>
 
 </body>
