@@ -2,14 +2,105 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ladder Torneo LoL</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Jugadores - Torneo LoL</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #3b3b5c;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    main {
+      padding: 1rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #2e2e4c;
+      margin: 0.5rem 0;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li span {
+      font-weight: bold;
+    }
+    .add-player {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+    .add-player input {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 5px 0 0 5px;
+      border: none;
+      outline: none;
+    }
+    .add-player button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      background: #ff7b00;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Ladder del Torneo</h1>
+  <header>Lista de Jugadores - Torneo LoL</header>
+  <main>
+    <div class="add-player">
+      <input type="text" id="playerName" placeholder="Nombre del jugador">
+      <button onclick="addPlayer()">Agregar</button>
+    </div>
+    <ul id="playerList"></ul>
+  </main>
 
-  <div id="app"></div>
+  <script>
+    let players = ["Jugador1", "Jugador2", "Jugador3"]; // ejemplo inicial
 
-  <script type="module" src="main.js"></script>
+    const playerList = document.getElementById('playerList');
+
+    function renderPlayers() {
+      playerList.innerHTML = '';
+      players.forEach((player, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${player}</span> <button onclick="removePlayer(${index})">Eliminar</button>`;
+        playerList.appendChild(li);
+      });
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('playerName');
+      const name = input.value.trim();
+      if(name) {
+        players.push(name);
+        input.value = '';
+        renderPlayers();
+      }
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      renderPlayers();
+    }
+
+    renderPlayers();
+  </script>
 </body>
 </html>
