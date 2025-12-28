@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ladderboard LoL</title>
+<title>Ladderboard Torneo LoL</title>
 <style>
   body { font-family: Arial; background: #12122b; color: #fff; margin: 0; padding: 0; }
   header { background: #2a2a50; padding: 1rem; text-align: center; font-size: 1.8rem; font-weight: bold; }
@@ -13,6 +13,15 @@
   th { background: #1f1f40; }
   tr:nth-child(even) { background: #1b1b35; }
   tr:hover { background: #2a2a50; }
+  .tier-IRON { color: #a0a0a0; }
+  .tier-BRONZE { color: #cd7f32; }
+  .tier-SILVER { color: #c0c0c0; }
+  .tier-GOLD { color: #ffd700; }
+  .tier-PLATINUM { color: #00e5ee; }
+  .tier-DIAMOND { color: #00bfff; }
+  .tier-MASTER { color: #9400d3; }
+  .tier-GRANDMASTER { color: #ff4500; }
+  .tier-CHALLENGER { color: #ff0000; }
 </style>
 </head>
 <body>
@@ -25,6 +34,7 @@
         <th>#</th>
         <th>Jugador</th>
         <th>Elo</th>
+        <th>Rank</th>
         <th>Wins</th>
         <th>Losses</th>
       </tr>
@@ -40,27 +50,23 @@ const players = [
   {summonerName: "Jugador3", region: "na1"}
 ];
 
-// Simula fetch a tu backend que llama Riot API
-async function fetchPlayerData(summonerName, region) {
-  // Reemplazá con tu backend, por ejemplo:
-  // return fetch(`/api/riot/${region}/${summonerName}`).then(r => r.json());
+const tierOrder = ["IRON","BRONZE","SILVER","GOLD","PLATINUM","DIAMOND","MASTER","GRANDMASTER","CHALLENGER"];
+const ladder = document.getElementById("ladder");
 
-  // Esto es un ejemplo simulado
-  return new Promise(res => setTimeout(() => {
-    const elos = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND"];
-    const tier = elos[Math.floor(Math.random() * elos.length)];
-    res({summonerName, tier, wins: Math.floor(Math.random()*100), losses: Math.floor(Math.random()*100)});
-  }, 500));
+async function fetchPlayerData(summonerName, region) {
+  try {
+    const res = await fetch(`/api/player/${region}/${summonerName}`);
+    if (!res.ok) return { summonerName, tier: "ERROR", rank: "", wins: 0, losses: 0 };
+    return await res.json();
+  } catch(e) {
+    return { summonerName, tier: "ERROR", rank: "", wins: 0, losses: 0 };
+  }
 }
 
 async function updateLadder() {
-  const ladder = document.getElementById("ladder");
   ladder.innerHTML = "";
-
   const results = await Promise.all(players.map(p => fetchPlayerData(p.summonerName, p.region)));
-
-  // Ordenar por tier (simplificado, solo por el índice de elos)
-  const tierOrder = ["IRON","BRONZE","SILVER","GOLD","PLATINUM","DIAMOND","MASTER","GRANDMASTER","CHALLENGER"];
+  // Ordenar por tier
   results.sort((a,b) => tierOrder.indexOf(b.tier) - tierOrder.indexOf(a.tier));
 
   results.forEach((p,i) => {
@@ -68,7 +74,8 @@ async function updateLadder() {
     tr.innerHTML = `
       <td>${i+1}</td>
       <td>${p.summonerName}</td>
-      <td>${p.tier}</td>
+      <td class="tier-${p.tier}">${p.tier}</td>
+      <td>${p.rank}</td>
       <td>${p.wins}</td>
       <td>${p.losses}</td>
     `;
@@ -76,9 +83,9 @@ async function updateLadder() {
   });
 }
 
-// Actualiza cada 60s
+// Inicial y refresco automático
 updateLadder();
-setInterval(updateLadder, 60000);
+setInterval(updateLadder, 60000); // cada 60s
 </script>
 
 </body>
